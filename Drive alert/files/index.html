@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DriveAlert — AI Driver Safety</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+
+  <script>
+    const SERVER_URL = window.location.origin;
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN 1 — HOME
+  ════════════════════════════════════════════════ -->
+  <div class="screen active" id="screen-home">
+
+    <!-- Top navigation bar -->
+    <nav class="nav">
+      <div class="nav-logo">
+        <span class="nav-dot" id="homeDot"></span>
+        DRIVEALERT
+      </div>
+      <div class="nav-status">
+        SYS <span id="sysStatus" class="status-ok">ONLINE</span>
+      </div>
+      <div class="nav-time" id="clock">00:00</div>
+    </nav>
+
+    <!-- Scrollable page content -->
+    <main class="content">
+
+      <!-- Hero section with radar rings -->
+      <section class="home-hero">
+        <div class="radar-ring"></div>
+        <div class="radar-ring"></div>
+        <div class="radar-ring"></div>
+
+        <!-- Face icon -->
+        <div class="hero-icon">
+          <svg width="38" height="38" viewBox="0 0 38 38" fill="none" aria-hidden="true">
+            <circle cx="19" cy="15" r="7.5" stroke="#00c8ff" stroke-width="1.5"/>
+            <ellipse cx="11.5" cy="15" rx="3" ry="4" stroke="#00c8ff" stroke-width="1"/>
+            <ellipse cx="26.5" cy="15" rx="3" ry="4" stroke="#00c8ff" stroke-width="1"/>
+            <path d="M10.5 27c0-4.7 3.8-8.5 8.5-8.5s8.5 3.8 8.5 8.5"
+                  stroke="#00c8ff" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="14" cy="15" r="1.5" fill="#00c8ff"/>
+            <circle cx="24" cy="15" r="1.5" fill="#00c8ff"/>
+          </svg>
+        </div>
+
+        <h1 class="hero-title">AI DRIVER SAFETY</h1>
+        <p class="hero-sub">Real-time drowsiness detection &amp; alerting</p>
+
+        <!-- Backend connection status badge -->
+        <div class="conn-badge disconnected" id="connBadge">
+          <span class="conn-dot"></span>
+          <span id="connText">CONNECTING TO BACKEND...</span>
+        </div>
+      </section>
+
+      <!-- Primary CTA button -->
+      <button class="start-btn" id="startBtn" onclick="startMonitoring()" disabled>
+        <span class="btn-corner tl"></span>
+        <span class="btn-corner tr"></span>
+        <span class="btn-corner bl"></span>
+        <span class="btn-corner br"></span>
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <polygon points="5,3 15,9 5,15" fill="#00c8ff"/>
+        </svg>
+        START MONITORING
+      </button>
+
+      <!-- Quick stats row -->
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-label">TOTAL TRIPS</div>
+          <div class="stat-val">24</div>
+          <div class="stat-unit">ALL TIME</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">ALERTS</div>
+          <div class="stat-val amber" id="homeAlertCount">0</div>
+          <div class="stat-unit">THIS SESSION</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">SAFE SCORE</div>
+          <div class="stat-val green" id="homeSafeScore">--</div>
+          <div class="stat-unit">LAST TRIP</div>
+        </div>
+      </div>
+
+      <!-- Recent trips list -->
+      <div class="section-header">
+        <span class="section-title">RECENT TRIPS</span>
+        <span class="section-link" onclick="goTo('history')">VIEW ALL →</span>
+      </div>
+
+      <!-- Trip card: safe -->
+      <article class="trip-card" onclick="goTo('history')">
+        <div class="trip-icon safe">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4 9l4 4 6-6" stroke="#00e87a" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="trip-info">
+          <div class="trip-name">Morning Commute</div>
+          <div class="trip-meta">TODAY · 42 MIN · 28.4 KM</div>
+        </div>
+        <div class="trip-score green">98%</div>
+      </article>
+
+      <!-- Trip card: warning -->
+      <article class="trip-card" onclick="goTo('history')">
+        <div class="trip-icon warn">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 4v6" stroke="#ffb020" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="9" cy="13" r="1" fill="#ffb020"/>
+          </svg>
+        </div>
+        <div class="trip-info">
+          <div class="trip-name">Highway Drive</div>
+          <div class="trip-meta">YESTERDAY · 2h 10m · 187 KM</div>
+        </div>
+        <div class="trip-score amber">72%</div>
+      </article>
+
+      <!-- Trip card: safe -->
+      <article class="trip-card" onclick="goTo('history')">
+        <div class="trip-icon safe">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4 9l4 4 6-6" stroke="#00e87a" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="trip-info">
+          <div class="trip-name">Evening Return</div>
+          <div class="trip-meta">2 DAYS AGO · 38 MIN · 26.1 KM</div>
+        </div>
+        <div class="trip-score green">91%</div>
+      </article>
+
+      <div class="page-spacer"></div>
+    </main>
+
+    <!-- Bottom navigation -->
+    <nav class="bottom-nav">
+      <button class="bnav-btn active" onclick="goTo('home')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <path d="M3 8.5L10 3l7 5.5V17H13v-4H7v4H3V8.5z"
+                stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        HOME
+      </button>
+      <button class="bnav-btn" onclick="goTo('monitor')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="7.5" stroke="currentColor"
+                  stroke-width="1" stroke-dasharray="2 2"/>
+        </svg>
+        MONITOR
+      </button>
+      <button class="bnav-btn" onclick="goTo('history')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="3" width="14" height="14" rx="2"
+                stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 8h6M7 12h4" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        HISTORY
+      </button>
+      <button class="bnav-btn" onclick="goTo('settings')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 3v2M10 15v2M3 10h2M15 10h2
+                   M5.2 5.2l1.4 1.4M13.4 13.4l1.4 1.4
+                   M14.8 5.2l-1.4 1.4M6.6 13.4l-1.4 1.4"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        SETTINGS
+      </button>
+      <button class="bnav-btn" onclick="goTo('profile')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>PROFILE
+      </button>
+    </nav>
+  </div><!-- /screen-home -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN 2 — LIVE MONITOR
+  ════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-monitor">
+
+    <nav class="nav">
+      <div class="nav-logo">
+        <span class="nav-dot"></span>
+        LIVE MONITOR
+      </div>
+      <div class="nav-status">
+        EYE <span id="monitorStatusSpan" class="status-ok">TRACKING</span>
+      </div>
+      <div class="nav-time" id="trip-clock">00:00</div>
+    </nav>
+
+    <main class="content">
+
+      <!-- Camera feed container -->
+      <div class="cam-container">
+        <!-- Real OpenCV frame streamed via WebSocket -->
+        <img id="camFeed" src="" alt="Live camera feed" class="cam-feed hidden" />
+
+        <!-- Shown while camera is starting -->
+        <div class="cam-placeholder" id="camPlaceholder">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+            <circle cx="26" cy="26" r="22" stroke="rgba(0,200,255,0.25)"
+                    stroke-width="1.5" stroke-dasharray="4 4"/>
+            <circle cx="26" cy="22" r="8" stroke="rgba(0,200,255,0.4)" stroke-width="1.5"/>
+            <path d="M15 42c0-6.1 4.9-11 11-11s11 4.9 11 11"
+                  stroke="rgba(0,200,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <p class="placeholder-text" id="placeholderText">STARTING CAMERA...</p>
+        </div>
+
+        <!-- HUD overlay (always on top) -->
+        <div class="cam-overlay">
+          <span class="hud-corner tl"></span>
+          <span class="hud-corner tr"></span>
+          <span class="hud-corner bl"></span>
+          <span class="hud-corner br"></span>
+
+          <div class="cam-chips">
+            <div class="chip ok" id="faceChip">● DETECTING...</div>
+            <div class="chip ok" id="eyeStatusChip">● EYES OPEN</div>
+          </div>
+
+          <div class="cam-timer" id="tripTimeDisplay">00:00</div>
+        </div>
+      </div>
+
+      <!-- EAR / MAR circular dials -->
+      <div class="dial-row">
+
+        <!-- Eye Aspect Ratio dial -->
+        <div class="dial">
+          <div class="metric-label">EYE ASPECT RATIO</div>
+          <svg width="68" height="68" viewBox="0 0 68 68" aria-label="EAR gauge">
+            <!-- Track ring -->
+            <circle cx="34" cy="34" r="28" fill="none"
+                    stroke="var(--bg3)" stroke-width="4"/>
+            <!-- Value arc — stroke-dashoffset controls fill level -->
+            <circle cx="34" cy="34" r="28" fill="none"
+                    stroke="var(--cyan)" stroke-width="4"
+                    stroke-linecap="round"
+                    stroke-dasharray="175.9"
+                    id="earArc"
+                    stroke-dashoffset="130"
+                    transform="rotate(-90 34 34)"/>
+            <!-- Numeric value -->
+            <text x="34" y="39" text-anchor="middle"
+                  font-family="'Share Tech Mono', monospace"
+                  font-size="13" fill="var(--text)"
+                  id="earText">--</text>
+          </svg>
+          <div class="dial-threshold">THRESHOLD: 0.25</div>
+        </div>
+
+        <!-- Mouth Aspect Ratio dial -->
+        <div class="dial">
+          <div class="metric-label">MOUTH ASPECT RATIO</div>
+          <svg width="68" height="68" viewBox="0 0 68 68" aria-label="MAR gauge">
+            <circle cx="34" cy="34" r="28" fill="none"
+                    stroke="var(--bg3)" stroke-width="4"/>
+            <circle cx="34" cy="34" r="28" fill="none"
+                    stroke="var(--green)" stroke-width="4"
+                    stroke-linecap="round"
+                    stroke-dasharray="175.9"
+                    id="marArc"
+                    stroke-dashoffset="160"
+                    transform="rotate(-90 34 34)"/>
+            <text x="34" y="39" text-anchor="middle"
+                  font-family="'Share Tech Mono', monospace"
+                  font-size="13" fill="var(--text)"
+                  id="marText">--</text>
+          </svg>
+          <div class="dial-threshold">THRESHOLD: 0.55</div>
+        </div>
+
+      </div><!-- /dial-row -->
+
+      <!-- Alertness and blink metric cards -->
+      <div class="metrics-grid">
+
+        <div class="metric-card">
+          <div class="metric-label">ALERTNESS LEVEL</div>
+          <div class="metric-value green" id="alertnessVal">--</div>
+          <div class="metric-bar-track">
+            <div class="metric-bar-fill" id="alertnessBar"
+                 style="width:0%; background:var(--green)"></div>
+          </div>
+          <div class="metric-sub" id="alertnessPct">--%</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">BLINK COUNT</div>
+          <div class="metric-value cyan" id="blinkCount">0</div>
+          <div class="metric-bar-track">
+            <div class="metric-bar-fill" id="blinkBar"
+                 style="width:0%; background:var(--cyan)"></div>
+          </div>
+          <div class="metric-sub">TOTAL BLINKS</div>
+        </div>
+
+      </div><!-- /metrics-grid -->
+
+      <!-- Detailed status table -->
+      <div class="status-panel">
+        <div class="status-row">
+          <span class="status-key">HEAD TILT</span>
+          <span class="status-val cyan" id="headTilt">--°</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">YAWN COUNT</span>
+          <span class="status-val" id="yawnCount">0</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">EYE STATUS</span>
+          <span class="status-val cyan" id="eyeClosure">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">DROWSINESS STATUS</span>
+          <span class="status-val green" id="drowsyStatus">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">PERCLOS</span>
+          <span class="status-val cyan" id="perclosVal">0%</span>
+        </div>
+        <div class="status-row last">
+          <span class="status-key">FATIGUE SCORE</span>
+          <span class="status-val green" id="fatigueScore">0/100</span>
+        </div>
+      </div>
+
+      <!-- Stop session button -->
+      <button class="stop-btn" onclick="stopMonitoring()">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <rect x="3" y="3" width="10" height="10" rx="1" fill="#ff3b3b"/>
+        </svg>
+        STOP SESSION
+      </button>
+
+      <div class="page-spacer"></div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="bnav-btn" onclick="goTo('home')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <path d="M3 8.5L10 3l7 5.5V17H13v-4H7v4H3V8.5z"
+                stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>HOME
+      </button>
+      <button class="bnav-btn active" onclick="goTo('monitor')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="7.5" stroke="currentColor"
+                  stroke-width="1" stroke-dasharray="2 2"/>
+        </svg>MONITOR
+      </button>
+      <button class="bnav-btn" onclick="goTo('history')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="3" width="14" height="14" rx="2"
+                stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 8h6M7 12h4" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round"/>
+        </svg>HISTORY
+      </button>
+      <button class="bnav-btn" onclick="goTo('settings')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 3v2M10 15v2M3 10h2M15 10h2
+                   M5.2 5.2l1.4 1.4M13.4 13.4l1.4 1.4
+                   M14.8 5.2l-1.4 1.4M6.6 13.4l-1.4 1.4"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>SETTINGS
+      </button>
+      <button class="bnav-btn" onclick="goTo('profile')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>PROFILE
+      </button>
+    </nav>
+  </div><!-- /screen-monitor -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN 3 — DROWSINESS ALERT
+  ════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-alert">
+
+    <nav class="nav nav-alert">
+      <div class="nav-logo nav-logo-red">
+        <span class="nav-dot red"></span>
+        DROWSINESS ALERT
+      </div>
+      <div class="nav-time" id="alert-clock">00:00</div>
+    </nav>
+
+    <!-- Pulsing red radial glow background -->
+    <div class="alert-bg"></div>
+
+    <!-- Centred alert content -->
+    <div class="alert-content">
+
+      <!-- Animated warning ring -->
+      <div class="alert-icon-ring">
+        <svg width="54" height="54" viewBox="0 0 54 54" fill="none" aria-label="Alert">
+          <path d="M27 15v14" stroke="#ff3b3b" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="27" cy="38" r="2.5" fill="#ff3b3b"/>
+          <path d="M25 7L4 44h46L29 7c-.9-1.6-3.1-1.6-4 0z"
+                stroke="#ff3b3b" stroke-width="2" stroke-linejoin="round"
+                fill="rgba(255,59,59,0.12)"/>
+        </svg>
+      </div>
+
+      <h2 class="alert-title">DROWSINESS DETECTED</h2>
+      <p class="alert-sub">
+        Prolonged eye closure and fatigue indicators detected.
+        Pull over and rest immediately.
+      </p>
+
+      <!-- Live alert stats grid -->
+      <div class="alert-stats">
+        <div class="alert-stat">
+          <div class="alert-stat-val" id="alertEAR">--</div>
+          <div class="alert-stat-label">EAR VALUE</div>
+        </div>
+        <div class="alert-stat">
+          <div class="alert-stat-val" id="alertMAR">--</div>
+          <div class="alert-stat-label">MAR VALUE</div>
+        </div>
+        <div class="alert-stat">
+          <div class="alert-stat-val" id="alertYawns">0</div>
+          <div class="alert-stat-label">YAWN COUNT</div>
+        </div>
+        <div class="alert-stat">
+          <div class="alert-stat-val" id="alertFatigue">--</div>
+          <div class="alert-stat-label">FATIGUE SCORE</div>
+        </div>
+      </div>
+
+      <button class="alert-dismiss" onclick="dismissAlert()">
+        I AM ALERT — RESUME
+      </button>
+      <button class="alert-snooze" onclick="stopMonitoring()">
+        End Trip →
+      </button>
+
+    </div>
+  </div><!-- /screen-alert -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN 4 — TRIP HISTORY
+  ════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-history">
+
+    <nav class="nav">
+      <div class="nav-logo">
+        <span class="nav-dot"></span>
+        TRIP HISTORY
+      </div>
+      <div class="nav-time" id="hist-clock">00:00</div>
+    </nav>
+
+    <main class="content">
+      <div class="page-spacer-sm"></div>
+
+      <!-- Summary cards -->
+      <div class="history-summary">
+        <div class="hs-card">
+          <div class="hs-val cyan">24</div>
+          <div class="hs-label">TOTAL TRIPS</div>
+        </div>
+        <div class="hs-card">
+          <div class="hs-val red">7</div>
+          <div class="hs-label">TOTAL ALERTS</div>
+        </div>
+        <div class="hs-card">
+          <div class="hs-val green">94%</div>
+          <div class="hs-label">AVG SAFE SCORE</div>
+        </div>
+      </div>
+
+      <!-- 7-day alertness bar chart -->
+      <div class="chart-container">
+        <div class="chart-title">ALERTNESS SCORE — LAST 7 DAYS</div>
+        <div class="bar-chart" role="img" aria-label="Weekly alertness bar chart">
+          <div class="bar-col">
+            <div class="bar" style="height:72px; background:var(--green); opacity:.7"></div>
+            <div class="bar-day">MON</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height:85px; background:var(--green); opacity:.8"></div>
+            <div class="bar-day">TUE</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height:55px; background:var(--amber); opacity:.9"></div>
+            <div class="bar-day">WED</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height:78px; background:var(--green); opacity:.7"></div>
+            <div class="bar-day">THU</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height:40px; background:var(--red); opacity:.9"></div>
+            <div class="bar-day">FRI</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height:88px; background:var(--green); opacity:.8"></div>
+            <div class="bar-day">SAT</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height:82px; background:var(--green)"></div>
+            <div class="bar-day">SUN</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full trips list -->
+      <div class="section-header" style="padding-top:4px">
+        <span class="section-title">ALL TRIPS</span>
+      </div>
+
+      <article class="trip-card">
+        <div class="trip-icon safe">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4 9l4 4 6-6" stroke="#00e87a" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="trip-info">
+          <div class="trip-name">Morning Commute</div>
+          <div class="trip-meta">TODAY · 42 MIN · 28.4 KM · 0 ALERTS</div>
+        </div>
+        <div class="trip-score green">98%</div>
+      </article>
+
+      <article class="trip-card">
+        <div class="trip-icon warn">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 4v6" stroke="#ffb020" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="9" cy="13" r="1" fill="#ffb020"/>
+          </svg>
+        </div>
+        <div class="trip-info">
+          <div class="trip-name">Highway Drive</div>
+          <div class="trip-meta">YESTERDAY · 2h 10m · 187 KM · 2 ALERTS</div>
+        </div>
+        <div class="trip-score amber">72%</div>
+      </article>
+
+      <article class="trip-card">
+        <div class="trip-icon safe">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4 9l4 4 6-6" stroke="#00e87a" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="trip-info">
+          <div class="trip-name">Evening Return</div>
+          <div class="trip-meta">2 DAYS AGO · 38 MIN · 26.1 KM · 0 ALERTS</div>
+        </div>
+        <div class="trip-score green">91%</div>
+      </article>
+
+      <article class="trip-card">
+        <div class="trip-icon alert">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 5v5" stroke="#ff3b3b" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="9" cy="13.5" r="1.2" fill="#ff3b3b"/>
+          </svg>
+        </div>
+        <div class="trip-info">
+          <div class="trip-name">Night Drive — Late</div>
+          <div class="trip-meta">FRI · 1h 55m · 142 KM · 5 ALERTS</div>
+        </div>
+        <div class="trip-score red">41%</div>
+      </article>
+
+      <div class="page-spacer"></div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="bnav-btn" onclick="goTo('home')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <path d="M3 8.5L10 3l7 5.5V17H13v-4H7v4H3V8.5z"
+                stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>HOME
+      </button>
+      <button class="bnav-btn" onclick="goTo('monitor')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="7.5" stroke="currentColor"
+                  stroke-width="1" stroke-dasharray="2 2"/>
+        </svg>MONITOR
+      </button>
+      <button class="bnav-btn active" onclick="goTo('history')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="3" width="14" height="14" rx="2"
+                stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 8h6M7 12h4" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round"/>
+        </svg>HISTORY
+      </button>
+      <button class="bnav-btn" onclick="goTo('settings')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 3v2M10 15v2M3 10h2M15 10h2
+                   M5.2 5.2l1.4 1.4M13.4 13.4l1.4 1.4
+                   M14.8 5.2l-1.4 1.4M6.6 13.4l-1.4 1.4"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>SETTINGS
+      </button>
+      <button class="bnav-btn" onclick="goTo('profile')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>PROFILE
+      </button>
+    </nav>
+  </div><!-- /screen-history -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN 5 — SETTINGS
+  ════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-settings">
+
+    <nav class="nav">
+      <div class="nav-logo">
+        <span class="nav-dot"></span>
+        SETTINGS
+      </div>
+      <div class="nav-time" id="set-clock">00:00</div>
+    </nav>
+
+    <main class="content">
+      <div class="page-spacer-sm"></div>
+
+      <!-- Detection settings -->
+      <section class="settings-section">
+        <div class="settings-section-title">DETECTION</div>
+
+        <div class="setting-row slider-row">
+          <div class="setting-info">
+            <div class="setting-name">EAR Sensitivity</div>
+            <div class="setting-desc">Eye Aspect Ratio alert threshold</div>
+          </div>
+          <div class="slider-controls">
+            <input type="range" class="setting-slider"
+                   min="10" max="40" value="25"
+                   oninput="this.nextElementSibling.textContent = '0.'+this.value" />
+            <span class="slider-val">0.25</span>
+          </div>
+        </div>
+
+        <div class="setting-row slider-row">
+          <div class="setting-info">
+            <div class="setting-name">MAR Sensitivity</div>
+            <div class="setting-desc">Mouth Aspect Ratio yawn threshold</div>
+          </div>
+          <div class="slider-controls">
+            <input type="range" class="setting-slider"
+                   min="40" max="80" value="55"
+                   oninput="this.nextElementSibling.textContent = '0.'+this.value" />
+            <span class="slider-val">0.55</span>
+          </div>
+        </div>
+
+        <div class="setting-row slider-row">
+          <div class="setting-info">
+            <div class="setting-name">Closure Duration</div>
+            <div class="setting-desc">Seconds before alert triggers</div>
+          </div>
+          <div class="slider-controls">
+            <input type="range" class="setting-slider"
+                   min="1" max="5" value="2"
+                   oninput="this.nextElementSibling.textContent = this.value+'s'" />
+            <span class="slider-val">2s</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Alert settings -->
+      <section class="settings-section">
+        <div class="settings-section-title">ALERTS</div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Sound Alarm</div>
+            <div class="setting-desc">Play loud alarm on detection</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Voice Alerts</div>
+            <div class="setting-desc">Spoken warning via browser speech API</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="voiceToggle" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Rest Stop Suggestions</div>
+            <div class="setting-desc">Recommend nearby rest areas</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Privacy settings -->
+      <section class="settings-section">
+        <div class="settings-section-title">PRIVACY</div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Local Processing Only</div>
+            <div class="setting-desc">All frames processed on-device — never uploaded</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-name">Save Trip History</div>
+            <div class="setting-desc">Store session summaries locally as JSON</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section class="settings-section">
+        <div class="settings-section-title">ABOUT</div>
+        <div class="setting-row about-row">
+          <div class="about-header">
+            <div class="setting-name">DriveAlert v1.0</div>
+            <span class="about-build">BUILD 2025</span>
+          </div>
+          <p class="about-desc">
+            AI-powered real-time drowsiness detection using OpenCV + MediaPipe.
+            EAR, MAR, PERCLOS and head-pose analysis processed locally via
+            Python backend on port 5000. No data ever leaves your device.
+          </p>
+        </div>
+      </section>
+
+      <div class="page-spacer"></div>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="bnav-btn" onclick="goTo('home')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <path d="M3 8.5L10 3l7 5.5V17H13v-4H7v4H3V8.5z"
+                stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>HOME
+      </button>
+      <button class="bnav-btn" onclick="goTo('monitor')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="7.5" stroke="currentColor"
+                  stroke-width="1" stroke-dasharray="2 2"/>
+        </svg>MONITOR
+      </button>
+      <button class="bnav-btn" onclick="goTo('history')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="3" width="14" height="14" rx="2"
+                stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 8h6M7 12h4" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round"/>
+        </svg>HISTORY
+      </button>
+      <button class="bnav-btn active" onclick="goTo('settings')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 3v2M10 15v2M3 10h2M15 10h2
+                   M5.2 5.2l1.4 1.4M13.4 13.4l1.4 1.4
+                   M14.8 5.2l-1.4 1.4M6.6 13.4l-1.4 1.4"
+                stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>SETTINGS
+      </button>
+    </nav>
+  </div><!-- /screen-settings -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       JAVASCRIPT — Navigation, Socket, Alerts
+  ════════════════════════════════════════════════ -->
+  <script>
+    /* ── Screen map ── */
+    const SCREENS = {
+      home     : 'screen-home',
+      monitor  : 'screen-monitor',
+      alert    : 'screen-alert',
+      history  : 'screen-history',
+      settings : 'screen-settings',
+      profile  : 'screen-profile',
+    };
+
+    function goTo(key) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const el = document.getElementById(SCREENS[key]);
+      if (el) el.classList.add('active');
+    }
+
+    /* ── Clock ── */
+    function updateClock() {
+      const t = new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+      ['clock','trip-clock','alert-clock','hist-clock','set-clock']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t; });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    /* ── Trip timer ── */
+    let tripSec = 0, tripTimer = null;
+    function startTripTimer() {
+      tripSec = 0;
+      if (tripTimer) clearInterval(tripTimer);
+      tripTimer = setInterval(() => {
+        tripSec++;
+        const mm = String(Math.floor(tripSec / 60)).padStart(2, '0');
+        const ss = String(tripSec % 60).padStart(2, '0');
+        const display = mm + ':' + ss;
+        const d1 = document.getElementById('tripTimeDisplay');
+        const d2 = document.getElementById('trip-clock');
+        if (d1) d1.textContent = display;
+        if (d2) d2.textContent = display;
+      }, 1000);
+    }
+
+    /* ── WebSocket connection ── */
+    const socket = io(SERVER_URL, {
+      transports: ['polling', 'websocket'],
+      reconnectionAttempts: 15,
+      reconnectionDelay: 1000,
+      timeout: 20000,
+    });
+
+    socket.on('connect', () => {
+      setConnStatus('connected', '● BACKEND CONNECTED');
+      document.getElementById('startBtn').disabled = false;
+      const s = document.getElementById('sysStatus');
+      s.textContent = 'ONLINE';
+      s.className = 'status-ok';
+    });
+
+    socket.on('disconnect', () => {
+      setConnStatus('disconnected', '✕ BACKEND OFFLINE');
+      document.getElementById('startBtn').disabled = true;
+      const s = document.getElementById('sysStatus');
+      s.textContent = 'OFFLINE';
+      s.className = 'status-err';
+    });
+
+    socket.on('connect_error', () => {
+      setConnStatus('disconnected', '✕ CANNOT REACH BACKEND');
+      document.getElementById('startBtn').disabled = true;
+    });
+
+    function setConnStatus(cls, text) {
+      const badge = document.getElementById('connBadge');
+      const label = document.getElementById('connText');
+      badge.className = 'conn-badge ' + cls;
+      label.textContent = text;
+    }
+
+    /* ── Live frame data from Python/OpenCV ── */
+    let alertCount = 0, lastAlertTime = 0;
+
+    socket.on('frame_data', (data) => {
+      /* Camera feed */
+      const img = document.getElementById('camFeed');
+      const placeholder = document.getElementById('camPlaceholder');
+      if (data.image) {
+        img.src = 'data:image/jpeg;base64,' + data.image;
+        img.classList.remove('hidden');
+        placeholder.style.display = 'none';
+      }
+
+      /* EAR dial */
+      const ear = parseFloat(data.ear) || 0;
+      const earOffset = 175.9 - (ear / 0.45) * 175.9;
+      const earArc = document.getElementById('earArc');
+      earArc.setAttribute('stroke-dashoffset', Math.max(0, earOffset).toFixed(1));
+      earArc.setAttribute('stroke',
+        ear < 0.25 ? '#ff3b3b' : ear < 0.30 ? '#ffb020' : '#00c8ff');
+      document.getElementById('earText').textContent = ear.toFixed(2);
+
+      /* MAR dial */
+      const mar = parseFloat(data.mar) || 0;
+      const marOffset = 175.9 - (mar / 0.8) * 175.9;
+      const marArc = document.getElementById('marArc');
+      marArc.setAttribute('stroke-dashoffset', Math.max(0, marOffset).toFixed(1));
+      marArc.setAttribute('stroke', mar > 0.55 ? '#ff3b3b' : '#00e87a');
+      document.getElementById('marText').textContent = mar.toFixed(2);
+
+      /* Alertness bar */
+      const al = data.alertness || 0;
+      const alLabel = al >= 70 ? 'HIGH' : al >= 40 ? 'MEDIUM' : al > 0 ? 'LOW' : '--';
+      const alColor = al >= 70 ? 'var(--green)' : al >= 40 ? 'var(--amber)' : 'var(--red)';
+      const avEl  = document.getElementById('alertnessVal');
+      const abEl  = document.getElementById('alertnessBar');
+      avEl.textContent  = alLabel;
+      avEl.style.color  = alColor;
+      abEl.style.width  = al + '%';
+      abEl.style.background = alColor;
+      document.getElementById('alertnessPct').textContent = al + '%';
+
+      /* Blinks */
+      const blinks = data.blinks || 0;
+      document.getElementById('blinkCount').textContent = blinks;
+      document.getElementById('blinkBar').style.width = Math.min(blinks * 4, 100) + '%';
+
+      /* Status panel */
+      document.getElementById('headTilt').textContent =
+        (parseFloat(data.head_tilt) || 0).toFixed(1) + '°';
+      document.getElementById('yawnCount').textContent = data.yawns || 0;
+      document.getElementById('perclosVal').textContent =
+        ((parseFloat(data.perclos) || 0) * 100).toFixed(1) + '%';
+      document.getElementById('fatigueScore').textContent =
+        (parseFloat(data.fatigue_score) || 0).toFixed(0) + '/100';
+
+      /* Drowsiness status */
+      const status = data.status || '--';
+      const statusColors = {
+        ALERT: 'var(--green)', FATIGUE: 'var(--amber)',
+        DROWSY: 'var(--red)', MILD: 'var(--cyan)', 'NO FACE': 'var(--text3)'
+      };
+      const dsEl = document.getElementById('drowsyStatus');
+      dsEl.textContent  = status;
+      dsEl.style.color  = statusColors[status] || 'var(--text2)';
+
+      /* Eye chips */
+      const faceChip     = document.getElementById('faceChip');
+      const eyeChip      = document.getElementById('eyeStatusChip');
+      const monitorSpan  = document.getElementById('monitorStatusSpan');
+
+      if (data.face_found) {
+        faceChip.textContent = '● FACE DETECTED';
+        faceChip.className   = 'chip ok';
+        if (ear < 0.25) {
+          eyeChip.textContent = '● EYES CLOSED';
+          eyeChip.className   = 'chip bad';
+          document.getElementById('eyeClosure').textContent  = 'CLOSED';
+          document.getElementById('eyeClosure').style.color  = 'var(--red)';
+        } else if (data.yawning) {
+          eyeChip.textContent = '◐ YAWNING';
+          eyeChip.className   = 'chip warn';
+          document.getElementById('eyeClosure').textContent  = 'YAWNING';
+          document.getElementById('eyeClosure').style.color  = 'var(--amber)';
+        } else {
+          eyeChip.textContent = '● EYES OPEN';
+          eyeChip.className   = 'chip ok';
+          document.getElementById('eyeClosure').textContent  = 'OPEN';
+          document.getElementById('eyeClosure').style.color  = 'var(--green)';
+        }
+        monitorSpan.textContent = status;
+        monitorSpan.className   =
+          status === 'DROWSY'  ? 'status-err'  :
+          status === 'FATIGUE' ? 'status-warn' : 'status-ok';
+      } else {
+        faceChip.textContent = '✕ NO FACE';
+        faceChip.className   = 'chip bad';
+      }
+
+      /* Alert trigger */
+      const now = Date.now();
+      if (data.alert && (now - lastAlertTime > 10000)) {
+        lastAlertTime = now;
+        alertCount++;
+        document.getElementById('homeAlertCount').textContent = alertCount;
+        document.getElementById('alertEAR').textContent    = ear.toFixed(2);
+        document.getElementById('alertMAR').textContent    = mar.toFixed(2);
+        document.getElementById('alertYawns').textContent  = data.yawns || 0;
+        document.getElementById('alertFatigue').textContent =
+          (parseFloat(data.fatigue_score) || 0).toFixed(0);
+        playAlertSound();
+        speakAlert();
+        goTo('alert');
+      }
+    });
+
+    socket.on('monitoring_started', () => {
+      document.getElementById('camPlaceholder').style.display = 'flex';
+      document.getElementById('placeholderText').textContent = 'STARTING CAMERA...';
+    });
+
+    socket.on('monitoring_stopped', () => {
+      monitoring = false;
+      stopClientCamera();
+      document.getElementById('camFeed').classList.add('hidden');
+      document.getElementById('camPlaceholder').style.display = 'flex';
+      document.getElementById('placeholderText').textContent = 'SESSION ENDED';
+    });
+
+    /* ── Mobile detection ── */
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+          || window.innerWidth <= 768;
+    }
+
+    /* ── Client-side camera (mobile) ── */
+    let clientStream    = null;
+    let captureCanvas   = null;
+    let captureCtx      = null;
+    let captureVideo    = null;
+    let captureInterval = null;
+
+    async function startClientCamera() {
+      try {
+        captureVideo = document.createElement('video');
+        captureVideo.setAttribute('playsinline', '');   // iOS requires this
+        captureVideo.setAttribute('muted', '');
+        captureVideo.muted = true;
+
+        // Request the front-facing (selfie) camera
+        clientStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+          audio: false,
+        });
+
+        captureVideo.srcObject = clientStream;
+        await captureVideo.play();
+
+        captureCanvas = document.createElement('canvas');
+        captureCanvas.width  = 640;
+        captureCanvas.height = 480;
+        captureCtx = captureCanvas.getContext('2d');
+
+        // Send a frame to the server ~15 fps
+        captureInterval = setInterval(() => {
+          if (!monitoring) { stopClientCamera(); return; }
+          captureCtx.drawImage(captureVideo, 0, 0, 640, 480);
+          const jpeg = captureCanvas.toDataURL('image/jpeg', 0.72);
+          const b64  = jpeg.split(',')[1];
+          socket.emit('client_frame', { image: b64 });
+        }, 67);   // ~15 fps
+
+        console.log('[CAM] Mobile camera started');
+      } catch (err) {
+        console.error('[CAM] getUserMedia failed:', err);
+        document.getElementById('placeholderText').textContent = 'CAMERA PERMISSION DENIED';
+      }
+    }
+
+    function stopClientCamera() {
+      if (captureInterval) { clearInterval(captureInterval); captureInterval = null; }
+      if (clientStream)    { clientStream.getTracks().forEach(t => t.stop()); clientStream = null; }
+    }
+
+    /* ── Session controls ── */
+    let monitoring = false;   // track locally so captureInterval can stop itself
+
+    function startMonitoring() {
+      goTo('monitor');
+      startTripTimer();
+      monitoring = true;
+      const useClientCam = isMobile();
+      socket.emit('start_monitoring', { client_camera: useClientCam });
+      if (useClientCam) startClientCamera();
+    }
+
+    function stopMonitoring() {
+      monitoring = false;
+      if (tripTimer) clearInterval(tripTimer);
+      stopClientCamera();
+      socket.emit('stop_monitoring');
+      const score = Math.max(40, 100 - alertCount * 15);
+      document.getElementById('homeSafeScore').textContent = score + '%';
+      goTo('home');
+    }
+
+    function dismissAlert() {
+      socket.emit('dismiss_alert');
+      goTo('monitor');
+    }
+
+    /* ── Alert sound (Web Audio API) ── */
+    function playAlertSound() {
+      try {
+        const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+        for (let i = 0; i < 3; i++) {
+          const osc  = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = 880;
+          osc.type = 'square';
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.45);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.45 + 0.4);
+          osc.start(ctx.currentTime + i * 0.45);
+          osc.stop(ctx.currentTime  + i * 0.45 + 0.4);
+        }
+      } catch (e) { /* AudioContext unavailable */ }
+    }
+
+    /* ── Voice alert (Web Speech API) ── */
+    function speakAlert() {
+      const voiceOn = document.getElementById('voiceToggle')?.checked;
+      if (voiceOn && window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance(
+          'Warning! Drowsiness detected. Please pull over and take a break.'
+        );
+        u.rate = 1; u.pitch = 1; u.volume = 1;
+        window.speechSynthesis.speak(u);
+      }
+    }
+  </script>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN 6 — PROFILE
+  ════════════════════════════════════════════════ -->
+  <div class="screen" id="screen-profile">
+
+    <nav class="nav">
+      <div class="nav-logo">
+        <span class="nav-dot"></span>
+        PROFILE
+      </div>
+      <button onclick="doLogout()" class="logout-btn" title="Logout">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M7 3H3a1 1 0 00-1 1v10a1 1 0 001 1h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M12 12l3-3-3-3M15 9H7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        LOGOUT
+      </button>
+    </nav>
+
+    <main class="content">
+      <div class="page-spacer-sm"></div>
+
+      <!-- ── Avatar + name card ── -->
+      <div class="profile-hero">
+        <div class="profile-avatar" id="profileAvatar">?</div>
+        <div class="profile-hero-info">
+          <div class="profile-name"  id="profileName">Loading...</div>
+          <div class="profile-uname" id="profileUname">@—</div>
+          <div class="profile-email" id="profileEmail">—</div>
+        </div>
+      </div>
+
+      <!-- ── Member since / last drive ── -->
+      <div class="profile-meta-row">
+        <div class="profile-meta-item">
+          <div class="profile-meta-label">MEMBER SINCE</div>
+          <div class="profile-meta-val" id="profileSince">—</div>
+        </div>
+        <div class="profile-meta-divider"></div>
+        <div class="profile-meta-item">
+          <div class="profile-meta-label">LAST DRIVE</div>
+          <div class="profile-meta-val" id="profileLastDrive">—</div>
+        </div>
+      </div>
+
+      <!-- ── Lifetime stat cards ── -->
+      <div class="section-header" style="padding-top:16px">
+        <span class="section-title">LIFETIME STATS</span>
+      </div>
+
+      <div class="profile-stats-grid">
+        <div class="profile-stat-card">
+          <div class="profile-stat-icon blue">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 2v7l4 2" stroke="#2563EB" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="9" cy="9" r="7" stroke="#2563EB" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div class="profile-stat-val" id="psTotalTrips">0</div>
+          <div class="profile-stat-label">TOTAL TRIPS</div>
+        </div>
+
+        <div class="profile-stat-card">
+          <div class="profile-stat-icon red">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 5v4" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="9" cy="12.5" r="1" fill="#DC2626"/>
+              <path d="M8 2L1 15h16L10 2a1.15 1.15 0 00-2 0z" stroke="#DC2626" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="profile-stat-val red" id="psTotalAlerts">0</div>
+          <div class="profile-stat-label">TOTAL ALERTS</div>
+        </div>
+
+        <div class="profile-stat-card">
+          <div class="profile-stat-icon green">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M3 9l5 5 7-8" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="profile-stat-val green" id="psAvgScore">—</div>
+          <div class="profile-stat-label">AVG SAFE SCORE</div>
+        </div>
+
+        <div class="profile-stat-card">
+          <div class="profile-stat-icon amber">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="9" r="3" stroke="#D97706" stroke-width="1.5"/>
+              <path d="M9 1v2M9 15v2M1 9h2M15 9h2" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="profile-stat-val amber" id="psTotalTime">0m</div>
+          <div class="profile-stat-label">TOTAL DRIVE TIME</div>
+        </div>
+
+        <div class="profile-stat-card">
+          <div class="profile-stat-icon blue">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 3C6.2 3 4 5.2 4 8c0 3.5 5 9 5 9s5-5.5 5-9c0-2.8-2.2-5-5-5z" stroke="#2563EB" stroke-width="1.5"/>
+              <circle cx="9" cy="8" r="1.5" fill="#2563EB"/>
+            </svg>
+          </div>
+          <div class="profile-stat-val" id="psBestScore">—</div>
+          <div class="profile-stat-label">BEST SCORE</div>
+        </div>
+
+        <div class="profile-stat-card">
+          <div class="profile-stat-icon red">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 3C6.2 3 4 5.2 4 8c0 3.5 5 9 5 9s5-5.5 5-9c0-2.8-2.2-5-5-5z" stroke="#DC2626" stroke-width="1.5"/>
+              <circle cx="9" cy="8" r="1.5" fill="#DC2626"/>
+            </svg>
+          </div>
+          <div class="profile-stat-val red" id="psWorstScore">—</div>
+          <div class="profile-stat-label">WORST SCORE</div>
+        </div>
+
+        <div class="profile-stat-card">
+          <div class="profile-stat-icon blue">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <ellipse cx="9" cy="9" rx="4" ry="2.5" stroke="#2563EB" stroke-width="1.5"/>
+              <path d="M5 9c0 2.8 1.8 5 4 5s4-2.2 4-5" stroke="#2563EB" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div class="profile-stat-val" id="psTotalYawns">0</div>
+          <div class="profile-stat-label">TOTAL YAWNS</div>
+        </div>
+
+        <div class="profile-stat-card">
+          <div class="profile-stat-icon green">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <circle cx="9" cy="8" r="3.5" stroke="#16A34A" stroke-width="1.5"/>
+              <path d="M5.5 8a3.5 3.5 0 007 0" stroke="#16A34A" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <div class="profile-stat-val" id="psTotalBlinks">0</div>
+          <div class="profile-stat-label">TOTAL BLINKS</div>
+        </div>
+      </div>
+
+      <!-- ── Safety rating ring ── -->
+      <div class="section-header">
+        <span class="section-title">SAFETY RATING</span>
+      </div>
+
+      <div class="safety-rating-card">
+        <div class="safety-ring-wrap">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <!-- track -->
+            <circle cx="55" cy="55" r="44" fill="none" stroke="#E5E7EB" stroke-width="8"/>
+            <!-- progress arc -->
+            <circle cx="55" cy="55" r="44" fill="none"
+                    stroke="#2563EB" stroke-width="8"
+                    stroke-linecap="round"
+                    stroke-dasharray="276.5"
+                    id="safetyArc"
+                    stroke-dashoffset="276.5"
+                    transform="rotate(-90 55 55)"
+                    style="transition: stroke-dashoffset 1s ease, stroke 0.5s ease"/>
+            <text x="55" y="50" text-anchor="middle"
+                  font-family="'Rajdhani',sans-serif" font-size="22" font-weight="700"
+                  fill="#111827" id="safetyRingVal">—</text>
+            <text x="55" y="67" text-anchor="middle"
+                  font-family="'Share Tech Mono',monospace" font-size="9"
+                  fill="#9CA3AF">SAFE SCORE</text>
+          </svg>
+        </div>
+        <div class="safety-rating-info">
+          <div class="safety-grade" id="safetyGrade">—</div>
+          <div class="safety-grade-label" id="safetyGradeLabel">No trips yet</div>
+          <div class="safety-tip" id="safetyTip">Complete a trip to get your rating.</div>
+        </div>
+      </div>
+
+      <!-- ── Fatigue breakdown bar ── -->
+      <div class="section-header">
+        <span class="section-title">FATIGUE BREAKDOWN</span>
+      </div>
+
+      <div class="fatigue-breakdown-card">
+        <div class="fatigue-row">
+          <span class="fatigue-label">AVG FATIGUE SCORE</span>
+          <span class="fatigue-val" id="fbAvgFatigue">—</span>
+        </div>
+        <div class="fatigue-bar-track">
+          <div class="fatigue-bar-fill" id="fbAvgFatigueBar" style="width:0%"></div>
+        </div>
+
+        <div class="fatigue-row" style="margin-top:12px">
+          <span class="fatigue-label">PEAK FATIGUE</span>
+          <span class="fatigue-val red" id="fbMaxFatigue">—</span>
+        </div>
+        <div class="fatigue-bar-track">
+          <div class="fatigue-bar-fill red" id="fbMaxFatigueBar" style="width:0%"></div>
+        </div>
+
+        <div class="fatigue-row" style="margin-top:12px">
+          <span class="fatigue-label">AVG PERCLOS</span>
+          <span class="fatigue-val amber" id="fbPerclos">—</span>
+        </div>
+        <div class="fatigue-bar-track">
+          <div class="fatigue-bar-fill amber" id="fbPerclosBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="page-spacer"></div>
+    </main>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+      <button class="bnav-btn" onclick="goTo('home')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <path d="M3 8.5L10 3l7 5.5V17H13v-4H7v4H3V8.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>HOME
+      </button>
+      <button class="bnav-btn" onclick="goTo('monitor')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/>
+        </svg>MONITOR
+      </button>
+      <button class="bnav-btn" onclick="goTo('history')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 8h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>HISTORY
+      </button>
+      <button class="bnav-btn" onclick="goTo('settings')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 3v2M10 15v2M3 10h2M15 10h2 M5.2 5.2l1.4 1.4M13.4 13.4l1.4 1.4 M14.8 5.2l-1.4 1.4M6.6 13.4l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>SETTINGS
+      </button>
+      <button class="bnav-btn active" onclick="goTo('profile')">
+        <svg class="bnav-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>PROFILE
+      </button>
+    </nav>
+  </div><!-- /screen-profile -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       PROFILE + AUTH JAVASCRIPT
+  ════════════════════════════════════════════════ -->
+  <script>
+    /* ══════════════════════════════════════════
+       AUTH HELPERS
+    ══════════════════════════════════════════ */
+    const DA_TOKEN    = () => localStorage.getItem('da_token');
+    const DA_USERNAME = () => localStorage.getItem('da_username');
+    const DA_NAME     = () => localStorage.getItem('da_name') || DA_USERNAME() || 'Driver';
+
+    /* Redirect to login if not authenticated */
+    async function checkAuth() {
+      const token = DA_TOKEN();
+      if (!token) { window.location.href = '/login'; return; }
+      try {
+        const r = await fetch('/auth/verify', { headers: { 'Authorization': 'Bearer ' + token } });
+        const d = await r.json();
+        if (!d.valid) { localStorage.clear(); window.location.href = '/login'; return; }
+        // Pre-fill profile from verify response
+        if (d.user) populateProfileBasic(d.user);
+      } catch(e) { /* offline — continue */ }
+    }
+
+    /* Logout */
+    async function doLogout() {
+      const token = DA_TOKEN();
+      if (token) {
+        try { await fetch('/auth/logout', { method:'POST', headers:{'Authorization':'Bearer '+token} }); }
+        catch(e) {}
+      }
+      localStorage.clear();
+      window.location.href = '/login';
+    }
+
+    /* Authenticate socket after connect */
+    socket.on('connect', () => {
+      setConnStatus('connected', '● BACKEND CONNECTED');
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('sysStatus').textContent = 'ONLINE';
+      document.getElementById('sysStatus').className   = 'status-ok';
+      const token = DA_TOKEN();
+      if (token) socket.emit('authenticate', { token });
+    });
+
+    socket.on('disconnect', () => {
+      setConnStatus('disconnected', '✕ BACKEND OFFLINE');
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('sysStatus').textContent = 'OFFLINE';
+      document.getElementById('sysStatus').className   = 'status-err';
+    });
+
+    socket.on('connect_error', () => {
+      setConnStatus('disconnected', '✕ CANNOT REACH BACKEND');
+      document.getElementById('startBtn').disabled = true;
+    });
+
+    function setConnStatus(cls, text) {
+      const badge = document.getElementById('connBadge');
+      const label = document.getElementById('connText');
+      if (badge) badge.className   = 'conn-badge ' + cls;
+      if (label) label.textContent = text;
+    }
+
+    socket.on('auth_ok', (data) => {
+      if (data.total_trips !== undefined) {
+        const tripCard = document.querySelector('.stat-row .stat-val');
+        if (tripCard) tripCard.textContent = data.total_trips;
+      }
+    });
+
+    socket.on('monitoring_stopped', (data) => {
+      document.getElementById('camFeed').classList.add('hidden');
+      const ph = document.getElementById('camPlaceholder');
+      if (ph) { ph.style.display = 'flex'; }
+      const pt = document.getElementById('placeholderText');
+      if (pt) pt.textContent = 'SESSION ENDED';
+      if (data && data.safe_score !== undefined)
+        document.getElementById('homeSafeScore').textContent = data.safe_score + '%';
+      setTimeout(() => loadProfile(), 600);
+    });
+
+    /* ══════════════════════════════════════════
+       OVERRIDE goTo — load data on tab switch
+    ══════════════════════════════════════════ */
+    const _origGoTo = goTo;
+    window.goTo = function(key) {
+      _origGoTo(key);
+      // Sync active state on ALL bottom-nav buttons
+      document.querySelectorAll('.bnav-btn').forEach(b => {
+        const match = b.getAttribute('onclick') === "goTo('" + key + "')";
+        b.classList.toggle('active', match);
+      });
+      if (key === 'profile') loadProfile();
+      if (key === 'history') loadHistory();
+    };
+
+    /* ══════════════════════════════════════════
+       PROFILE — load & render
+    ══════════════════════════════════════════ */
+    async function loadProfile() {
+      const token = DA_TOKEN();
+      if (!token) return;
+      try {
+        const r = await fetch('/api/profile', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (d.user)  populateProfileBasic(d.user);
+        if (d.stats) populateProfileStats(d.stats);
+      } catch(e) { console.warn('[PROFILE]', e); }
+    }
+
+    function populateProfileBasic(u) {
+      const name  = u.full_name || u.username || 'Driver';
+      const uname = '@' + (u.username || '');
+      const email = u.email || '';
+      const since = u.created_at ? u.created_at.slice(0, 10) : '—';
+      const last  = u.last_login ? u.last_login.slice(0, 10) : 'Never';
+
+      // Avatar initials
+      const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      const av = document.getElementById('profileAvatar');
+      if (av) av.textContent = initials;
+
+      setText('profileName',      name);
+      setText('profileUname',     uname);
+      setText('profileEmail',     email);
+      setText('profileSince',     since);
+      setText('profileLastDrive', last);
+
+      // Store for re-use
+      localStorage.setItem('da_name',     name);
+      localStorage.setItem('da_username', u.username || '');
+    }
+
+    function populateProfileStats(s) {
+      const trips    = s.total_trips   || 0;
+      const alerts   = s.total_alerts  || 0;
+      const avgScore = s.avg_safe_score != null ? Math.round(s.avg_safe_score) : null;
+      const minutes  = s.total_drive_min || 0;
+      const hours    = minutes >= 60
+        ? Math.floor(minutes/60) + 'h ' + Math.round(minutes%60) + 'm'
+        : Math.round(minutes) + 'm';
+
+      setText('psTotalTrips',  trips);
+      setText('psTotalAlerts', alerts);
+      setText('psAvgScore',    avgScore != null ? avgScore + '%' : '—');
+      setText('psTotalTime',   hours);
+      setText('psBestScore',   s.best_score  != null ? s.best_score  + '%' : '—');
+      setText('psWorstScore',  s.worst_score != null ? s.worst_score + '%' : '—');
+      setText('psTotalYawns',  s.total_yawns  || 0);
+      setText('psTotalBlinks', s.total_blinks || 0);
+
+      // Safety ring
+      if (avgScore != null) {
+        const arc       = document.getElementById('safetyArc');
+        const ringVal   = document.getElementById('safetyRingVal');
+        const gradeEl   = document.getElementById('safetyGrade');
+        const gradeLabel= document.getElementById('safetyGradeLabel');
+        const tipEl     = document.getElementById('safetyTip');
+
+        const circumference = 276.5;
+        const offset = circumference - (avgScore / 100) * circumference;
+
+        if (arc) {
+          arc.style.strokeDashoffset = offset;
+          arc.style.stroke = avgScore >= 80 ? '#16A34A' : avgScore >= 50 ? '#D97706' : '#DC2626';
+        }
+        if (ringVal) { ringVal.textContent = avgScore + '%'; ringVal.setAttribute('fill', avgScore >= 80 ? '#16A34A' : avgScore >= 50 ? '#D97706' : '#DC2626'); }
+
+        const grade = avgScore >= 90 ? 'A+' : avgScore >= 80 ? 'A' : avgScore >= 70 ? 'B' : avgScore >= 60 ? 'C' : avgScore >= 50 ? 'D' : 'F';
+        const label = avgScore >= 80 ? 'Excellent Driver' : avgScore >= 60 ? 'Good Driver' : avgScore >= 40 ? 'Needs Improvement' : 'High Risk';
+        const tip   = avgScore >= 80
+          ? 'Great driving habits! Keep it up.'
+          : avgScore >= 60
+          ? 'Consider taking more rest stops on long drives.'
+          : 'You have frequent drowsiness alerts. Please prioritise rest before driving.';
+
+        if (gradeEl)    { gradeEl.textContent = grade; gradeEl.style.color = avgScore >= 80 ? '#16A34A' : avgScore >= 50 ? '#D97706' : '#DC2626'; }
+        if (gradeLabel) gradeLabel.textContent = label;
+        if (tipEl)      tipEl.textContent = tip;
+      }
+
+      // Fatigue breakdown bars
+      const avgFatigue = s.avg_fatigue   || 0;
+      const maxFatigue = s.max_fatigue_ever || 0;
+      const perclos    = (s.perclos_avg || 0) * 100;
+
+      setText('fbAvgFatigue', avgFatigue.toFixed(1) + '/100');
+      setText('fbMaxFatigue', maxFatigue.toFixed(1) + '/100');
+      setText('fbPerclos',    perclos.toFixed(1) + '%');
+
+      setBar('fbAvgFatigueBar', avgFatigue, 100, '#2563EB');
+      setBar('fbMaxFatigueBar', maxFatigue, 100, '#DC2626');
+      setBar('fbPerclosBar',    perclos,    30,  '#D97706');
+    }
+
+    function setText(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    }
+
+    function setBar(id, val, max, color) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.width      = Math.min(100, (val / max) * 100) + '%';
+        el.style.background = color;
+      }
+    }
+
+    /* ══════════════════════════════════════════
+       HISTORY — load & render
+    ══════════════════════════════════════════ */
+    async function loadHistory() {
+      const token = DA_TOKEN();
+      if (!token) return;
+      try {
+        const r = await fetch('/api/history', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!r.ok) return;
+        const d = await r.json();
+        renderHistory(d.sessions || []);
+      } catch(e) { console.warn('[HISTORY]', e); }
+    }
+
+    function renderHistory(sessions) {
+      if (!sessions.length) return;
+      renderHomeTrips(sessions.slice(0, 3));
+      renderAllTrips(sessions);
+      renderWeeklyChart(sessions.slice(-7));
+
+      // Update history summary cards
+      const totalAlerts = sessions.reduce((a, s) => a + (s.alert_count || 0), 0);
+      const avgScore    = Math.round(sessions.reduce((a, s) => a + (s.safe_score || 0), 0) / sessions.length);
+      const cards = document.querySelectorAll('#screen-history .hs-val');
+      if (cards[0]) cards[0].textContent = sessions.length;
+      if (cards[1]) cards[1].textContent = totalAlerts;
+      if (cards[2]) cards[2].textContent = avgScore + '%';
+    }
+
+    function renderWeeklyChart(recent) {
+      const bars = document.querySelectorAll('.bar');
+      const days = document.querySelectorAll('.bar-day');
+      const maxH = 90;
+      bars.forEach((bar, i) => {
+        const s = recent[i];
+        if (!s) return;
+        const h   = Math.round((s.safe_score / 100) * maxH);
+        const col = s.safe_score >= 80 ? '#16A34A' : s.safe_score >= 50 ? '#D97706' : '#DC2626';
+        bar.style.height     = h + 'px';
+        bar.style.background = col;
+        if (days[i]) {
+          const d = new Date(s.date);
+          days[i].textContent = ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()] || '—';
+        }
+      });
+    }
+
+    function tripCardHTML(s) {
+      const score    = s.safe_score || 0;
+      const alerts   = s.alert_count || 0;
+      const iconType = alerts === 0 ? 'safe' : alerts <= 2 ? 'warn' : 'alert';
+      const scoreCol = score >= 80 ? 'green' : score >= 50 ? 'amber' : 'red';
+      const iconSVG  = iconType === 'safe'
+        ? `<path d="M4 9l4 4 6-6" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+        : iconType === 'warn'
+        ? `<path d="M9 4v6" stroke="#D97706" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="13" r="1" fill="#D97706"/>`
+        : `<path d="M9 5v5" stroke="#DC2626" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="13.5" r="1.2" fill="#DC2626"/>`;
+      return `<article class="trip-card db-trip">
+        <div class="trip-icon ${iconType}">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">${iconSVG}</svg>
+        </div>
+        <div class="trip-info">
+          <div class="trip-name">${s.date || 'Trip'}</div>
+          <div class="trip-meta">${s.duration_min || '?'} MIN · ${alerts} ALERTS · ${s.yawn_count||0} YAWNS</div>
+        </div>
+        <div class="trip-score ${scoreCol}">${score}%</div>
+      </article>`;
+    }
+
+    function renderHomeTrips(sessions) {
+      const header = document.querySelector('#screen-home .section-header');
+      if (!header) return;
+      document.querySelectorAll('#screen-home .db-trip').forEach(e => e.remove());
+      document.querySelectorAll('#screen-home .trip-card:not(.db-trip)').forEach(e => e.style.display = 'none');
+      sessions.forEach(s => header.insertAdjacentHTML('afterend', tripCardHTML(s)));
+    }
+
+    function renderAllTrips(sessions) {
+      const header = document.querySelector('#screen-history .section-header');
+      if (!header) return;
+      document.querySelectorAll('#screen-history .db-trip').forEach(e => e.remove());
+      document.querySelectorAll('#screen-history .trip-card:not(.db-trip)').forEach(e => e.style.display = 'none');
+      [...sessions].reverse().slice(0, 20).forEach(s => header.insertAdjacentHTML('afterend', tripCardHTML(s)));
+    }
+
+    /* ══════════════════════════════════════════
+       INIT
+    ══════════════════════════════════════════ */
+    checkAuth();
+    loadHistory();
+  </script>
+
+</body>
+</html>

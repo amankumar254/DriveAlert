@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DriveAlert — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg      : #F9FAFB;
+      --bg2     : #FFFFFF;
+      --bg3     : #F3F4F6;
+      --bg4     : #E5E7EB;
+      --border  : rgba(37,99,235,0.14);
+      --cyan    : #2563EB;
+      --green   : #16A34A;
+      --amber   : #D97706;
+      --red     : #DC2626;
+      --text    : #111827;
+      --text2   : #6B7280;
+      --text3   : #9CA3AF;
+      --font    : 'Rajdhani', sans-serif;
+      --mono    : 'Share Tech Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ── Animated background grid ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Radial glow ── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(37,99,235,0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    /* ── Logo ── */
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--text);
+    }
+    .logo-sub {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text3);
+      text-align: center;
+      margin-top: -24px;
+      margin-bottom: 28px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: 0.4;
+    }
+
+    /* ── Tab switcher ── */
+    .tabs {
+      display: flex;
+      background: var(--bg3);
+      border-radius: 8px;
+      padding: 3px;
+      margin-bottom: 24px;
+    }
+    .tab {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      background: none;
+      color: var(--text3);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .tab.active {
+      background: rgba(0,200,255,0.12);
+      color: #ffffff;
+      border: 1px solid rgba(0,200,255,0.25);
+    }
+
+    /* ── Forms ── */
+    .form { display: none; flex-direction: column; gap: 14px; }
+    .form.active { display: flex; }
+
+    .field-group { display: flex; flex-direction: column; gap: 5px; }
+    .field-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--text3);
+      font-weight: 600;
+    }
+    .field-input {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg3);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field-input:focus {
+      border-color: rgba(0,200,255,0.4);
+      box-shadow: 0 0 0 3px rgba(0,200,255,0.06);
+    }
+    .field-input::placeholder { color: var(--text3); }
+
+    /* ── Row for two fields ── */
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 4px;
+      background: var(--cyan);
+      border: none;
+      border-radius: 8px;
+      color: #ffffff;
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .submit-btn:hover {
+      background: rgba(0,200,255,0.18);
+      box-shadow: 0 0 20px rgba(0,200,255,0.12);
+    }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Error / success message ── */
+    .msg {
+      display: none;
+      padding: 10px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      text-align: center;
+    }
+    .msg.error   { background: rgba(255,59,59,0.10);  border: 1px solid rgba(255,59,59,0.25);  color: var(--red);   display: block; }
+    .msg.success { background: rgba(0,232,122,0.10); border: 1px solid rgba(0,232,122,0.25); color: var(--green); display: block; }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text3);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      margin: 2px 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--text3);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      display: none;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,200,255,0.2);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .submit-btn.loading .btn-label { display: none; }
+    .submit-btn.loading .spinner   { display: block; }
+
+    /* ── Password strength bar ── */
+    .pw-strength { height: 3px; border-radius: 2px; background: var(--bg4); margin-top: 4px; overflow: hidden; }
+    .pw-bar      { height: 100%; width: 0; transition: width 0.3s, background 0.3s; border-radius: 1px; }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- Logo -->
+  <div class="logo">
+    <span class="logo-dot"></span>
+    <span class="logo-text">DRIVEALERT</span>
+  </div>
+  <p class="logo-sub">AI DRIVER SAFETY SYSTEM</p>
+
+  <!-- Auth card -->
+  <div class="card">
+
+    <!-- Login / Signup tabs -->
+    <div class="tabs">
+      <button class="tab active" id="tabLogin"  onclick="switchTab('login')">LOGIN</button>
+      <button class="tab"        id="tabSignup" onclick="switchTab('signup')">SIGN UP</button>
+    </div>
+
+    <!-- ── LOGIN FORM ── -->
+    <div class="form active" id="formLogin">
+      <div id="loginMsg"></div>
+
+      <div class="field-group">
+        <label class="field-label">USERNAME OR EMAIL</label>
+        <input class="field-input" id="loginUser" type="text"
+               placeholder="Enter username or email" autocomplete="username"/>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">PASSWORD</label>
+        <input class="field-input" id="loginPass" type="password"
+               placeholder="Enter password" autocomplete="current-password"/>
+      </div>
+
+      <button class="submit-btn" id="loginBtn" onclick="doLogin()">
+        <span class="btn-label">LOGIN →</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+    <!-- ── SIGNUP FORM ── -->
+    <div class="form" id="formSignup">
+      <div id="signupMsg"></div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">FIRST NAME</label>
+          <input class="field-input" id="signupFirst" type="text" placeholder="First"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">LAST NAME</label>
+          <input class="field-input" id="signupLast" type="text" placeholder="Last"/>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">USERNAME</label>
+        <input class="field-input" id="signupUser" type="text"
+               placeholder="Choose a username" autocomplete="username"/>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">EMAIL</label>
+        <input class="field-input" id="signupEmail" type="email"
+               placeholder="your@email.com" autocomplete="email"/>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">PASSWORD</label>
+        <input class="field-input" id="signupPass" type="password"
+               placeholder="Min 6 characters" oninput="checkStrength(this.value)"
+               autocomplete="new-password"/>
+        <div class="pw-strength"><div class="pw-bar" id="pwBar"></div></div>
+      </div>
+
+      <button class="submit-btn" id="signupBtn" onclick="doSignup()">
+        <span class="btn-label">CREATE ACCOUNT →</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+  </div><!-- /card -->
+
+  <div class="footer">
+    ALL DATA PROCESSED LOCALLY · NO DATA UPLOADED
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+  /* ── Tab switch ── */
+  function switchTab(tab) {
+    document.getElementById('tabLogin').classList.toggle('active',  tab === 'login');
+    document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+    document.getElementById('formLogin').classList.toggle('active',  tab === 'login');
+    document.getElementById('formSignup').classList.toggle('active', tab === 'signup');
+    clearMsgs();
+  }
+
+  function clearMsgs() {
+    ['loginMsg','signupMsg'].forEach(id => {
+      const el = document.getElementById(id);
+      el.className = 'msg';
+      el.textContent = '';
+    });
+  }
+
+  function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className   = 'msg ' + type;
+  }
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.classList.toggle('loading', loading);
+    btn.disabled = loading;
+  }
+
+  /* ── Password strength ── */
+  function checkStrength(pw) {
+    const bar = document.getElementById('pwBar');
+    let score = 0;
+    if (pw.length >= 6)  score++;
+    if (pw.length >= 10) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    const pct   = (score / 5) * 100;
+    const color = score <= 1 ? '#ff3b3b' : score <= 3 ? '#ffb020' : '#00e87a';
+    bar.style.width      = pct + '%';
+    bar.style.background = color;
+  }
+
+  /* ── Login ── */
+  async function doLogin() {
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    if (!user || !pass) { showMsg('loginMsg', 'Please fill in all fields', 'error'); return; }
+
+    setLoading('loginBtn', true);
+    try {
+      const res  = await fetch('/auth/login', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ username: user, password: pass }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showMsg('loginMsg', 'Login successful! Redirecting...', 'success');
+        localStorage.setItem('da_token',    data.token);
+        localStorage.setItem('da_username', data.user.username);
+        localStorage.setItem('da_name',     data.user.full_name || data.user.username);
+        localStorage.setItem('da_user_id',  data.user.id);
+        setTimeout(() => window.location.href = '/', 800);
+      } else {
+        showMsg('loginMsg', data.error || 'Login failed', 'error');
+      }
+    } catch (e) {
+      showMsg('loginMsg', 'Cannot reach server', 'error');
+    }
+    setLoading('loginBtn', false);
+  }
+
+  /* ── Signup ── */
+  async function doSignup() {
+    const first = document.getElementById('signupFirst').value.trim();
+    const last  = document.getElementById('signupLast').value.trim();
+    const user  = document.getElementById('signupUser').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const pass  = document.getElementById('signupPass').value;
+
+    if (!user || !email || !pass) { showMsg('signupMsg', 'Please fill in all required fields', 'error'); return; }
+    if (pass.length < 6)          { showMsg('signupMsg', 'Password must be at least 6 characters', 'error'); return; }
+
+    setLoading('signupBtn', true);
+    try {
+      const res  = await fetch('/auth/signup', {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({
+          username : user,
+          email    : email,
+          password : pass,
+          full_name: (first + ' ' + last).trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showMsg('signupMsg', 'Account created! Logging you in...', 'success');
+        localStorage.setItem('da_token',    data.token);
+        localStorage.setItem('da_username', data.user.username);
+        localStorage.setItem('da_name',     data.user.full_name || data.user.username);
+        localStorage.setItem('da_user_id',  data.user.id);
+        setTimeout(() => window.location.href = '/', 800);
+      } else {
+        showMsg('signupMsg', data.error || 'Signup failed', 'error');
+      }
+    } catch (e) {
+      showMsg('signupMsg', 'Cannot reach server', 'error');
+    }
+    setLoading('signupBtn', false);
+  }
+
+  /* ── Enter key support ── */
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const loginActive = document.getElementById('formLogin').classList.contains('active');
+    if (loginActive) doLogin(); else doSignup();
+  });
+
+  /* ── Redirect if already logged in ── */
+  const token = localStorage.getItem('da_token');
+  if (token) {
+    fetch('/auth/verify', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    }).then(r => r.json()).then(d => {
+      if (d.valid) window.location.href = '/';
+    }).catch(() => {});
+  }
+</script>
+</body>
+</html>
